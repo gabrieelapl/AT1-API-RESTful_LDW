@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { sequelize } from './config/database';
 
 dotenv.config();
 
@@ -11,14 +12,20 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'OK',
-    mensagem: 'Servidor Backend rodando com sucesso.',
-    timestamp: new Date().toISOString()
-  });
+  res.status(200).json({ status: 'OK', mensagem: 'Servidor operacional.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-  console.log(`Health Check disponivel em: http://localhost:${PORT}/api/health`);
-});
+async function main() {
+  try {
+    await sequelize.authenticate();
+    console.log('Conexao com o banco de dados PostgreSQL estabelecida com sucesso.');
+
+    app.listen(PORT, () => {
+      console.log(`Servidor rodando em http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('Erro ao conectar com o banco de dados:', error);
+  }
+}
+
+main();
